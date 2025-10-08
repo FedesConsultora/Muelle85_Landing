@@ -1,70 +1,169 @@
-# Getting Started with Create React App
+# Muelle85 · Landing One‑Page (CRA + SCSS + Google Apps Script)
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Landing site **mobile‑first** para Muelle85 con **Hero en video**, **header glass** con menú hamburguesa animado y catálogo de **Gamas** leído desde Google Sheets vía **Google Apps Script**. Incluye **tracking de UTMs**, sesión anónima y registro de **leads por WhatsApp**. Estilos con **SCSS (@use)**, arquitectura modular y lista para deploy (Vercel/Netlify).
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## 1) Objetivos & Alcance
 
-### `npm start`
+- Presentar la marca y las gamas de campers con foco en **mobile**.
+- **Hero** con video centrado en el camper (timelapse de fondo).
+- **Header glass** flotante sobre el hero; menú hamburguesa con animación de apertura/cierre.
+- Catálogo de **Gamas** proveniente de **Google Sheets** (solo estado `publicado`).
+- **Medición mínima**: UTMs + referrer + `session_id` anónimo y **leads de WhatsApp**.
+- Código mantenible, desacoplado y escalable para futuras secciones/CTAs.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+---
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 2) Pila Tecnológica
 
-### `npm test`
+- **Frontend**: Create React App (React 18+), **SCSS** con `@use` (sin `@import`).
+- **UI interna**: Context API para **Toasts** y **Modales** (sin dependencias externas).
+- **Backend de datos**: **Google Apps Script** sobre **Google Sheets** (Web App pública con enlace).
+- **Tracking**: UTMs + `session_id` en `localStorage`.
+- **Build/Deploy**: Vercel / Netlify / GitHub Pages (SPA).
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+---
 
-### `npm run build`
+## 3) Estructura del Proyecto
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```
+src/
+  components/
+    Header.jsx          # header glass + menú hamburguesa animado
+    Hero.jsx            # hero en video, overlay de texto
+    Gamas.jsx           # listado de gamas (GET Apps Script)
+    WhatsAppButton.jsx  # CTA → registra lead + abre wa.me
+  components/ui/
+    Modal.jsx
+    ToastViewport.jsx
+  context/
+    ModalContext.jsx
+    ToastContext.jsx
+  providers/
+    UIProviders.jsx
+  services/
+    appscript.js        # fetch a Apps Script (GET/POST form-urlencoded)
+  utils/
+    session.js          # session_id anónimo
+    utm.js              # parseo UTMs/referrer
+  styles/
+    _variables.scss
+    _mixins.scss
+    base/_reset.scss
+    components/_header.scss
+    components/_hero.scss
+    components/_toast.scss
+    components/_modal.scss
+    main.scss
+  App.jsx
+  index.js
+.env.example
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+---
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## 4) Modelo de Datos (Google Sheets)
 
-### `npm run eject`
+**Pestañas requeridas:**
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+- **Sesiones**: `id_sesion, fecha_visita, url_entrada, origen_referencia, utm_source, utm_medium, utm_campaign, utm_content`
+- **Leads_WhatsApp**: `id_lead, id_sesion, fecha, id_gama, telefono_whatsapp, mensaje_prellenado, url_entrada, utm_source, utm_medium, utm_campaign`
+- **Gamas**: `id_gama, nombre, estado` *(“publicado” | “borrador”)*
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+> El Google Apps Script trabaja con la **hoja activa** (no requiere `spreadsheetId`).
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+---
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## 5) Endpoints (Apps Script)
 
-## Learn More
+- **GET** `?action=getGamas` → `[{ id_gama, nombre }]` (solo `estado = "publicado"`)
+- **POST** `action=registrarSesion` (`x-www-form-urlencoded`) → upsert en **Sesiones**
+- **POST** `action=agregarLeadWA` (`x-www-form-urlencoded`) → append en **Leads_WhatsApp**
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+> Se utiliza **`application/x-www-form-urlencoded`** para evitar **preflight CORS** y simplificar el despliegue.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+---
 
-### Code Splitting
+## 6) Configuración Local
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+1. **Variables de entorno**  
+   Copiar `.env.example` → `.env` y completar:
+   ```env
+   REACT_APP_APPS_SCRIPT_URL=https://script.google.com/macros/s/XXX/exec
+   REACT_APP_WA_PHONE=54911XXXXXXXX
+   ```
 
-### Analyzing the Bundle Size
+2. **Instalación**
+   ```bash
+   npm i
+   # o
+   yarn
+   ```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+3. **Desarrollo**
+   ```bash
+   npm start
+   # o
+   yarn start
+   ```
 
-### Making a Progressive Web App
+4. **Build**
+   ```bash
+   npm run build
+   # o
+   yarn build
+   ```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+---
 
-### Advanced Configuration
+## 7) Estilos & Accesibilidad
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+- **SCSS con `@use`** para variables/mixins/componentes.
+- **Glass Effect**: fondo `rgba(34,33,36,.5)` + `backdrop-filter: blur(10px)` + borde suave.
+- **Hero Video**: `object-fit: cover` y `object-position` ajustable para mantener el camper centrado en mobile.
+- **A11y**: `aria-expanded`, `aria-controls`, `aria-hidden` en el menú; modales con foco y cierre por `Escape`; toasts en `aria-live`.
 
-### Deployment
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+## 8) Prácticas de Calidad
 
-### `npm run build` fails to minify
+- **Separación de capas**: componentes (UI), servicios (fetch), utils (utm/session), context (UI global).
+- **Errores no bloqueantes** en tracking (console warning y fallback).
+- **Tipografías fluidas** con `clamp()`. Contenedor con `--container-max`.
+- **Sin dependencias UI** para toast/modal → menor superficie de mantenimiento.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+---
+
+## 9) Seguridad & CORS
+
+- Apps Script expuesto como **Web App** “Cualquiera con el enlace”.
+- **POST form-url-encoded** para evitar preflight; no se envían cookies ni auth.
+- No se guardan datos personales del usuario en sesión; solo `session_id` anónimo + UTMs.
+
+---
+
+## 10) Scripts NPM
+
+- `start` – Dev server de CRA.  
+- `build` – Build de producción.  
+- `test` – (reserva).  
+- `eject` – No usar salvo necesidad puntual.
+
+---
+
+## 11) Roadmap
+
+- CTA “Obtén tu viaje de prueba” (glass) con tracking.
+- ScrollSpy + resaltado de sección en el header.
+- Eventos de `section_view` y `scroll_%`.
+- Skeletons/cargas en Gamas.
+- `useConfirm()` basado en Modal (promesa).
+- SEO (title/meta/og), sitemap y favicons.
+- Tests (React Testing Library).
+
+---
+
+## 13) Licencia
+
+MIT © Muelle85 / Fedes Consultora

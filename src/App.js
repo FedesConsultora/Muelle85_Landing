@@ -1,25 +1,33 @@
-import logo from './logo.svg';
-import './App.css';
+// src/App.jsx
+import { useEffect } from 'react';
+import Header from './components/Header';
+import Hero from './components/Hero';
+import Gamas from './components/Gamas';
+import { registrarSesion } from './services/appscript';
+import { getOrCreateSessionId } from './utils/session';
+import { captureUTMs, getLandingContext } from './utils/utm';
 
-function App() {
+export default function App() {
+  useEffect(() => {
+    const sessionId = getOrCreateSessionId();
+    const utms = captureUTMs();
+    const ctx  = getLandingContext();
+    registrarSesion({
+      id_sesion: sessionId,
+      fecha_visita: new Date().toLocaleString('es-AR'),
+      ...ctx, ...utms
+    }).catch(() => {});
+  }, []);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <>
+      <a id="top" href="#top" style={{position:'absolute', inset:'-9999px'}}>top</a>
+      <Header />
+      <Hero />
+      <Gamas />
+      <footer className="footer">
+        <div className="container">© {new Date().getFullYear()} Muelle85</div>
+      </footer>
+    </>
   );
 }
-
-export default App;
