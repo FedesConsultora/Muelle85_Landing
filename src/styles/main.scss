@@ -1,56 +1,34 @@
-// src/styles/main.scss
 @use './_variables' as v;
-@use './_mixins' as m;
 @use './base/_reset';
-@use './components/_toast';
-@use './components/_modal';
 @use './components/_header';
 @use './components/_hero';
 
-:root{
-  --bg: #{v.$color-bg};
-  --text: #{v.$color-text};
-  --primary: #{v.$color-primary};
-  --wa: #{v.$color-wa};
-  --container-max: #{v.$container-max};
-}
-
-.container { @include m.container; }
-
+/* Botones simples (opcional) */
 .btn{
-  @include m.button-reset;
-  display:inline-flex; align-items:center; justify-content:center;
-  padding:.9rem 1.2rem; border-radius: v.$radius;
-  background: var(--primary); color:#0a0a0a; font-weight:600;
-  box-shadow: v.$shadow; transition: transform .15s ease, filter .15s ease;
-  &:hover{ transform: translateY(-1px); filter:brightness(1.04); }
-  &.btn-primary{ }
-  &.btn-wa{ background: var(--wa); }
+  appearance: none; border: 0; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: .9rem 1.2rem; border-radius: 14px;
+  background: v.$color-primary; color: #0a0a0a; font-weight: 600;
+  box-shadow: 0 8px 24px rgba(0,0,0,.25);
+  transition: transform .15s ease, filter .15s ease;
+  &:hover{ transform: translateY(-1px); filter: brightness(1.04); }
+  &.btn-wa{ background: v.$color-wa; }
 }
 
-.hero{
-  padding: 88px 0 64px;
-  background: radial-gradient(1200px 600px at 80% -20%, rgba(43,212,167,.15), transparent 60%);
-  .container{ text-align:center; }
-  h1{ font-size: clamp(2rem, 4vw, 3.2rem); letter-spacing: .5px; }
-  p{ opacity:.9; margin:.75rem 0 1.25rem; font-size: clamp(1rem, 2vw, 1.25rem); }
-}
-
+/* Resto de secciones (ejemplo) */
 .gamas{
   padding: 56px 0 80px;
-  h2{ margin-bottom: 20px; }
+  h2{ margin: 0 16px 20px; }
   .gamas-grid{
-    display:grid; gap:16px;
+    display: grid; gap: 16px; padding: 0 16px;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   }
   .gama-card{
-    border:1px solid rgba(255,255,255,.08);
-    border-radius: v.$radius; padding:16px; background: rgba(255,255,255,.02);
-    box-shadow: v.$shadow;
-    h3{ margin-bottom: 8px; }
-    p{ opacity:.85; margin-bottom: 12px; }
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 14px; padding: 16px; background: rgba(255,255,255,.02);
+    box-shadow: 0 8px 24px rgba(0,0,0,.25);
   }
 }
 
 .error{ color: v.$color-error; }
-.footer{ padding: 32px 0; opacity:.7; }
+.footer{ padding: 32px 16px; opacity: .7; }

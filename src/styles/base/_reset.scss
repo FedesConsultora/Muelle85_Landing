@@ -1,11 +1,27 @@
-// src/styles/base/_reset.scss
-*,*::before,*::after{ box-sizing:border-box; }
-html,body,#root{ height:100%; }
+@use '../_variables' as v;
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body, #root { height: 100%; }
+
+/* Anti overflow horizontal bien agresivo */
+html, body { width: 100%; overflow-x: clip; }
+
 body{
-  margin:0;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji","Segoe UI Emoji";
-  background: var(--bg);
-  color: var(--text);
+  margin: 0;
+  font-family: "Manrope", system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  background: v.$color-bg;
+  color: v.$color-text;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
-h1,h2,h3,p{ margin:0 0 .75rem; }
-a{ color: inherit; text-decoration: none; }
+
+img, video { display: block; max-width: 100%; height: auto; }
+
+h1,h2,h3,p { margin: 0 0 .75rem; }
+p{
+    margin: 0 !important;
+}
+a { color: inherit; text-decoration: none; }
+
+.no-scroll { overflow: hidden; }

@@ -21,8 +21,7 @@ export default function App() {
 
   return (
     <>
-      <a id="top" href="#top" style={{position:'absolute', inset:'-9999px'}}>top</a>
-      <Header />
+      <Header id="top" />
       <Hero />
       <Gamas />
       <footer className="footer">

@@ -1,6 +1,4 @@
 // src/components/Hero.jsx
-// Hero con video de fondo + overlay de texto. Mobile-first.
-// El video se centra usando object-position para mantener el camper visible.
 export default function Hero() {
   return (
     <section id="hero" className="hero" aria-label="Hero principal">
@@ -14,6 +12,8 @@ export default function Hero() {
           loop
           playsInline
         />
+        {/* Tinte gris + gradiente para realismo/legibilidad */}
+        <div className="hero__tint" aria-hidden="true" />
         <div className="hero__gradient" aria-hidden="true" />
       </div>
 
@@ -23,8 +23,9 @@ export default function Hero() {
           No es para los que viajan.<br />
           Es para los que <strong>VIVEN</strong>.
         </h1>
-        {/* En hero NO va el botón de "Ver gamas" (según pedido).
-            Si luego querés el CTA "Obtén tu viaje de prueba", se agrega aquí. */}
+        <button className="buttonViaje">
+            <p>Obtén tu viaje de prueba</p>
+        </button>
       </div>
     </section>
   );

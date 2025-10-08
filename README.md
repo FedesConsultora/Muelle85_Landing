@@ -27,7 +27,7 @@ Landing site **mobile‑first** para Muelle85 con **Hero en video**, **header gl
 
 ## 3) Estructura del Proyecto
 
-```
+```bash
 src/
   components/
     Header.jsx          # header glass + menú hamburguesa animado
@@ -89,19 +89,22 @@ src/
 
 1. **Variables de entorno**  
    Copiar `.env.example` → `.env` y completar:
-   ```env
-   REACT_APP_APPS_SCRIPT_URL=https://script.google.com/macros/s/XXX/exec
-   REACT_APP_WA_PHONE=54911XXXXXXXX
-   ```
+
+    ```env
+    REACT_APP_APPS_SCRIPT_URL=https://script.google.com/macros/s/XXX/exec
+    REACT_APP_WA_PHONE=54911XXXXXXXX
+    ```
 
 2. **Instalación**
-   ```bash
-   npm i
-   # o
-   yarn
-   ```
+
+    ```bash
+    npm i
+    # o
+    yarn
+    ```
 
 3. **Desarrollo**
+
    ```bash
    npm start
    # o
@@ -109,6 +112,7 @@ src/
    ```
 
 4. **Build**
+
    ```bash
    npm run build
    # o
