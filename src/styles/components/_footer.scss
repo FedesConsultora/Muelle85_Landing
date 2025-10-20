@@ -1,0 +1,141 @@
+/* src/styles/components/_footer.scss */
+@use '../_variables' as v;
+
+.site-footer{
+  background: v.$color-bg;
+  color: v.$color-text;
+}
+
+.footer__panel{
+  display: grid;
+  gap: 22px;
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 12px;
+  background: rgba(255,255,255,.02);
+  padding: 22px;
+  box-shadow: 0 10px 28px rgba(0,0,0,.28);
+}
+
+/* Logo */
+.footer__brand img{
+  height: 84px;
+  display:block;
+  filter: drop-shadow(0 2px 10px rgba(0,0,0,.35));
+  margin-bottom: 0rem;
+  position: relative;
+  right: 0.6rem;
+}
+
+/* Texto */
+.footer__title{
+  font: 700 1.65rem/1.18 "Manrope", system-ui;
+  letter-spacing: .2px;
+  margin: 0;
+  text-wrap: balance;
+}
+.footer__title .accent{
+  color: v.$color-primary;   /* verde como en mock */
+  font-weight: 700;
+}
+
+/* Iconos */
+.footer__icons{
+  display:flex; gap: 14px; margin-top: 12px; position: relative; right: 0.5rem; margin-top: 0.5rem; margin-bottom: 2rem; margin-right: 4rem;
+}
+.ico{
+  width: 40px;
+  height: 40px;
+  display:grid;
+  place-items:center;
+  border-radius: 8px;
+  transition: transform .15s ease, background .15s ease;
+  -webkit-transition: transform .15s ease, background .15s ease;
+  -moz-transition: transform .15s ease, background .15s ease;
+  -ms-transition: transform .15s ease, background .15s ease;
+  -o-transition: transform .15s ease, background .15s ease;
+  -webkit-border-radius: 8px;
+  -moz-border-radius: 8px;
+  -ms-border-radius: 8px;
+  -o-border-radius: 8px;
+  img{ width: 22px; height: 22px; }
+  &:hover{ transform: translateY(-1px); background: rgba(255,255,255,.10); }
+}
+/* WhatsApp con leve acento verde */
+.ico--wa{ border-color: rgba(v.$color-primary,.45); }
+
+/* CTA principal: glass azul como el hero */
+.footer__cta{
+  margin-top: 14px;
+  align-items:center;
+  justify-content:center;
+  width: 100%;
+  display: flex;
+  padding: 12px 38px;
+  border-radius: 8px;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+  background: rgba(v.$color-secondary, .70);
+  border: 1px solid rgba(255,255,255,.12);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  box-shadow: 0 10px 24px rgba(0,0,0,.30);
+  transition: transform .15s ease, filter .15s ease, background .15s ease;
+  text-align:center;
+  -webkit-border-radius: 8px;
+  -moz-border-radius: 8px;
+  -ms-border-radius: 8px;
+  -o-border-radius: 8px;
+  &:hover{ transform: translateY(-1px); filter: brightness(1.04); }
+}
+
+.footer__legal{
+  opacity:.8;
+  text-align:center;
+  font-size:.95rem;
+  padding: 14px 12px 22px;    /* sólo padding inferior para respiración */
+}
+
+.footer__dev{
+  color: v.$color-text;
+  text-decoration: none;
+  font-weight: 700;           /* negrita al enlace */
+}
+.footer__dev:hover{ text-decoration: underline; }
+/* Desktop layout */
+@media (min-width: 640px){
+ .footer__cta{
+    width: 50% !important;
+ }
+}
+@media (min-width: 900px){
+    .footer__panel{
+        padding-left: 40px;
+        padding-right: 40px;
+    }
+    .footer_container{
+        display: flex;
+        align-items: center;
+    }
+}
+@media (min-width: 1024px){
+    
+  .site-footer{  }
+    .footer__panel{
+        padding-top: 4rem;
+        padding-bottom: 4rem;
+        display: flex;
+        justify-content: space-between;
+        padding-left: 80px;
+        padding-right: 80px;
+    }
+  .footer__brand{ display:flex; justify-content:flex-start; }
+  .footer__brand img{ height: 106px; }
+  .footer__content{
+    display:grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto;
+    column-gap: 18px; row-gap: 12px; align-items: center;
+  }
+  .footer__title{ grid-column: 1 / -1; font-size: clamp(1.2rem, 1.3vw, 1.8rem); }
+  .footer__icons{ grid-column: 1; margin-top: 6px; margin-bottom: 6px; }
+  .footer__cta{ grid-column: 2; width: auto !important; padding-inline: 22px; white-space: nowrap; margin-top: 7px; }
+}

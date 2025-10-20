@@ -2,11 +2,11 @@
 export default function Hero() {
   return (
     <section id="hero" className="hero" aria-label="Hero principal">
-      <div className="hero__media">
+      <div id="top" className="hero__media">
         <video
           className="hero__video"
-          src="/video/hero.mp4"
-          poster="/img/hero-poster.jpg"
+          src="/video/hero_optimizado.webm"
+          poster="/img/hero-poster.webp"
           autoPlay
           muted
           loop

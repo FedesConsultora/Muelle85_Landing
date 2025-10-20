@@ -1,0 +1,79 @@
+@use '../_variables' as v;
+
+/* ---- Sección Steps ---- */
+.steps{
+  position: relative;
+  width: 100vw;
+  min-height: 100vh;
+  min-height: 100svh;
+  background: url('../../assets/fondoStep.webp') center/cover no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0 16px;
+  color: #fff;
+  overflow: hidden;
+}
+
+.steps__overlay{
+  position: absolute;
+  inset: 0;
+  backdrop-filter: brightness(0.8);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.steps__content{
+  position: relative;
+  z-index: 1;
+  max-width: 720px;
+  text-shadow: 0 2px 8px rgba(0,0,0,.55);
+
+  h2{
+    font-family: "Manrope", system-ui;
+    font-weight: 700;
+    font-size: 2.9rem;
+    line-height: normal;
+    margin-bottom: 28px;
+    color: #fff;
+  }
+
+  ol{
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 20px;
+
+    li{
+      font-family: "Manrope", system-ui;
+      font-size: 20px;
+      font-weight: 400;
+      line-height: normal;
+      color: #fff;
+      max-width: 600px;
+
+      strong{
+        font-weight: 700;
+        margin-right: 4px;
+      }
+    }
+  }
+}
+
+/* Desktop layout */
+@media (min-width: 1024px){
+  .steps{
+    justify-content: flex-start;
+    padding-left: clamp(80px, 10vw, 120px);
+  }
+  .steps__content{
+    h2{
+      font-size: 3rem;
+      line-height: normal;
+    }
+    ol li{
+      font-size: 20px;
+    }
+  }
+}

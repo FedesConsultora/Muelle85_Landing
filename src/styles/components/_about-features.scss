@@ -1,0 +1,90 @@
+@use '../_variables' as v;
+
+/* ===== FEATURES (layout + pin) ===== */
+.about__features{
+  position: relative;
+  /* En mobile/tablet dejamos fluir; el min-height fuerte sólo en desktop */
+  min-height: auto;
+
+  --header-h: 64px;
+  padding-top: clamp(72px, calc(var(--header-h) + 20px), 120px);
+  padding-bottom: clamp(28px, 6vh, 80px);
+  padding-left: 16px; padding-right: 16px;
+
+  display: grid;
+  grid-template-rows: auto 1fr; /* mobile: texto arriba, grid abajo */
+  gap: 18px;
+
+  /* pequeño toque 3D para cards durante la caída */
+  perspective: 900px;
+}
+
+.about__features-wrap{
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: inherit;
+}
+
+.about__features-head{
+  text-align: left; margin-bottom: 62px;
+
+  .kicker{
+    color: v.$color-primary; font-weight: 700; font-size: 1rem;
+    display: block; text-align: left;
+  }
+
+  .about__features-title{
+    color:#FFF; font-family: Manrope, system-ui;
+    font-size: 33px; font-style: normal; font-weight: 700; line-height: normal;
+    margin: 6px 0 8px; text-align: left;
+  }
+
+  .lead{
+    opacity:.65; text-align: left; margin-top:.75rem; max-width: 36ch;
+  }
+}
+
+/* Grid 2×2 – mobile 1 col, tablet 2, desktop 2 */
+.about__grid{ display: grid; gap: 30px; }
+.about__grid--2x2{ grid-template-columns: 1fr; }
+
+/* Card plana y centrada; el ícono NO tiene fondo */
+.feature-card{
+  display: flex; min-height: clamp(260px, 36vh, 377px);
+  padding: 26px 25px; flex-direction: column;
+  justify-content: center; align-items: center; gap: 23px;
+
+  border-radius: 12px;
+  background: rgba(0,0,0,.22);
+  border: 1px solid rgba(255,255,255,.08);
+  box-shadow: 0 8px 24px rgba(0,0,0,.25);
+
+  text-align: center;
+  transform-style: preserve-3d;
+  will-change: transform, opacity, filter;
+}
+.feature-card--flat{
+  .feature-card__iconImg{ width: clamp(72px, 6vw, 96px); height: auto; display:block; }
+  .feature-card__title{ font: 700 16px/1.25 "Manrope", system-ui; }
+  .feature-card__desc{ opacity:.85; font-size: 14px; max-width: 42ch; }
+}
+
+/* tablet: 2 columnas */
+@media (min-width: 720px){
+  .about__grid--2x2{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* desktop: texto izq, grid der + min-height para pin */
+@media (min-width: 1024px){
+  .about__features{
+    min-height: 100svh;
+    display: flex;
+    padding-left: 80px; padding-right: 80px;
+  }
+  .about__features-wrap{
+    display: flex; width: 100%;
+    
+  }
+  .about__features-head{ grid-column: 1; align-self: center; }
+  .about__grid--2x2{ grid-column: 2; }
+}

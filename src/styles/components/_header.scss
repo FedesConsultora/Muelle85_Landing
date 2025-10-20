@@ -1,99 +1,230 @@
 @use '../_variables' as v;
 
-/* Header fijo con padding lateral */
-.site-header{
+/*
+ * Styles for the liquid‑glass header.
+ *
+ * The bar sits fixed at the top of the page with padding on either side.  On
+ * mobile the navigation collapses into the same bar and can be toggled
+ * with a hamburger button; on desktop the links are displayed inline.
+ *
+ * The `.glass` class defines a tinted, blurred surface with an inner
+ * shadow.  A nested `.glass__refract` layer uses a CSS custom
+ * property (`--glass-bg`) set by the JavaScript to display a
+ * dynamically distorted version of the underlying hero video.  A wide
+ * ring (24px) is carved out of this layer using masking so only the
+ * border shows the refracted image.  The rest of the bar remains a
+ * simple tinted blur.
+ */
+
+/* Fixed header with horizontal padding */
+.site-header {
   position: fixed;
-  top: 12px; left: 0; right: 0;
+  top: 12px;
+  left: 0;
+  right: 0;
   z-index: 100;
   padding-left: 12px;
   padding-right: 12px;
 }
 
-/* La barrita glass */
-.site-header__wrap{
+/* Wrapper for the glass bar */
+.site-header__wrap {
   width: 100%;
-  max-width: 100%;          /* ✅ nunca más ancho que el viewport interno */
+  max-width: 100%;
   color: #fff;
   border-radius: 8px;
   overflow: hidden;
-  transition: border-radius .18s ease;
+  transition: border-radius 0.18s ease;
 }
 
-/* CONTENEDOR FLEX: permitir que encoja */
-.site-header__row{
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 10px 14px;
-  min-width: 0;             /* ✅ CLAVE: permite encoger el ancho */
+/* Layout for brand, nav and toggle */
+.site-header__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0px 16px;
+  min-width: 0;
+  max-width: 100%;
+}
+.site-header__row > * {
+  min-width: 0;
   max-width: 100%;
 }
 
-/* Hijos directos del flex también deben permitir encogerse */
-.site-header__row > *{
-  min-width: 0;             /* ✅ CLAVE #2 */
-  max-width: 100%;
-}
-
-/* Marca */
-.brand img{
-  height: 29px;
-  max-width: 100%;
+/* Logo sizing */
+.brand img {
+  height: 50px;
   display: block;
 }
 
-/* Navegación inline (solo desktop) */
-.nav-inline{
+/* Inline navigation (desktop) */
+.nav-inline {
   display: none;
   gap: 10px;
-  min-width: 0;             /* por si en el futuro hay textos largos */
-  a{
-    padding: 8px 12px; border-radius: 10px; font-weight: 700;
-    color:#fff; text-decoration:none;
-    white-space: nowrap;    /* evita quiebres raros */
-    &:hover{ background: rgba(255,255,255,.08); }
+  min-width: 0;
+}
+.nav-inline a {
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-weight: 700;
+  color: #fff;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.nav-inline a:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Hamburger button (mobile) */
+.menu-toggle {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  font-size: 22px;
+  line-height: 1;
+  padding: 6px 8px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+.menu-toggle:hover {
+  background: rgba(255, 255, 255, 0.08);
+  opacity: 0.95;
+}
+
+/* Collapsible navigation (mobile) */
+.nav-collapsible {
+  display: grid;
+  grid-auto-rows: 1fr;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: max-height 0.28s ease, opacity 0.18s ease, transform 0.18s ease;
+}
+.nav-collapsible a {
+  padding: 14px 16px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  color: #fff;
+  text-decoration: none;
+}
+.nav-collapsible a:last-child {
+  border-bottom: 0;
+}
+.nav-collapsible a:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+.site-header.is-open .nav-collapsible {
+  max-height: 320px;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Base glass appearance: tint, blur and inner shadow */
+.glass {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(18, 30, 43, 0.45);
+  -webkit-backdrop-filter: blur(3px) saturate(1.06) contrast(1.02);
+  backdrop-filter: blur(3px) saturate(1.06) contrast(1.02);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12), inset 0 0 22px rgba(0, 0, 0, 0.22);
+}
+
+
+/* Refractive ring sobre canvas (sin dataURL) */
+.glass__refract {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+
+  /* El anillo grueso (24px) con máscara XOR */
+  --ring: 24px;
+  border: var(--ring) solid transparent;
+  -webkit-mask:
+    linear-gradient(#000 0 0) padding-box,
+    linear-gradient(#000 0 0) border-box;
+  mask:
+    linear-gradient(#000 0 0) padding-box,
+    linear-gradient(#000 0 0) border-box;
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+
+  /* Asegura que el canvas se estire al 100% */
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Contenido por encima */
+.site-header__row,
+.nav-collapsible { position: relative; z-index: 1; }
+
+
+
+/* Ensure content and collapsible menu appear above the ring */
+.site-header__row,
+.nav-collapsible {
+  position: relative;
+  z-index: 1;
+}
+
+/* Optional highlight and shading to give the bar thickness */
+.glass::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.26), inset 0 -1px 0 rgba(0, 0, 0, 0.28);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(0, 0, 0, 0) 34%),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0) 50%);
+  mix-blend-mode: soft-light;
+}
+
+/* Desktop modifications */
+@media (min-width: 1024px) {
+  .site-header {
+    top: 16px;
+  }
+  .brand img {
+    height: 58px;
+  }
+  .menu-toggle {
+    display: none;
+  }
+  .nav-collapsible {
+    display: none;
+  }
+  .nav-inline {
+    display: flex;
+  }
+  .site-header__row {
+    padding: 0px 16px;
   }
 }
 
-/* Botón hamburguesa */
-.menu-toggle{
-  appearance: none; border: 0; background: transparent; color: #fff;
-  font-size: 22px; line-height: 1; padding: 6px 8px; border-radius: 10px; cursor: pointer;
-  transition: background .15s ease, opacity .15s ease;
-  &:hover{ background: rgba(255,255,255,.08); opacity: .95; }
+
+@media (min-width: 900px){
+  .site-header{ padding-bottom: 40px; padding-left: 40px; padding-right: 40px; }
 }
 
-/* Dropdown interno de la MISMA barrita (mobile) */
-.nav-collapsible{
-  display: grid; grid-auto-rows: 1fr;
-  border-top: 1px solid rgba(255,255,255,.08);
-  max-height: 0; opacity: 0; transform: translateY(-6px);
-  transition: max-height .28s ease, opacity .18s ease, transform .18s ease;
-  a{
-    padding: 14px 16px; font-weight: 700; letter-spacing: .2px;
-    border-bottom: 1px solid rgba(255,255,255,.06);
-    color:#fff; text-decoration:none;
-    &:last-child{ border-bottom: 0; }
-    &:hover{ background: rgba(255,255,255,.06); }
-  }
-}
-.site-header.is-open .nav-collapsible{
-  max-height: 320px; opacity: 1; transform: translateY(0);
-}
-
-/* Glass */
-.glass{
-  background: rgba(34, 33, 36, 0.50);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255,255,255,.12);
-  box-shadow: 0 6px 18px rgba(0,0,0,.25) inset, 0 2px 10px rgba(0,0,0,.12);
-}
-
-/* Desktop */
 @media (min-width: 1024px){
-  .site-header{ top: 16px; }
-  .brand img{ height: 34px; }
-  .menu-toggle{ display: none; }
-  .nav-collapsible{ display: none; }
-  .nav-inline{ display: flex; }
-  .site-header__row{ padding: 12px 16px; }
+  .site-header{ padding-bottom: 40px; padding-left: 80px; padding-right: 80px; }
+}
+.nav-inline a,
+.nav-collapsible a{
+  transition: color .25s ease, text-shadow .25s ease;
+}
+.nav-inline a.is-active,
+.nav-collapsible a.is-active{
+  color: var(--accent, #6bd08f);
+  text-shadow: 0 0 14px rgba(107,208,143,.35);
 }

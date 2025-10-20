@@ -78,8 +78,12 @@
   }
 }
 
+@media (min-width: 900px){
+  .hero__content{ padding-bottom: 40px; padding-left: 40px; padding-right: 40px; }
+}
+
 @media (min-width: 1024px){
   .hero__video{ object-position: 50% 60%; }
-  .hero__content{ padding-bottom: 40px; }
+  .hero__content{ padding-bottom: 40px; padding-left: 80px; padding-right: 80px; }
   .hero__content h1{ font-size: clamp(2.2rem, 4vw, 3.8rem); }
 }

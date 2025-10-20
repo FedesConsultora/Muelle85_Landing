@@ -37,6 +37,6 @@
 }
 
 @keyframes toast-in {
-  from { transform: translateY(6px); opacity: .0; }
+  from { transform: translateY(6px); opacity: .0; -webkit-transform: translateY(6px); -moz-transform: translateY(6px); -ms-transform: translateY(6px); -o-transform: translateY(6px); }
   to { transform: translateY(0); opacity: 1; }
 }

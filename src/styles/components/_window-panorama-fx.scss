@@ -1,0 +1,35 @@
+@use '../_variables' as v;
+
+.windowFx{
+  position: relative;
+  min-height: 100svh;
+  overflow: clip;
+
+  .windowFx__media{ position: absolute; inset: 0; }
+  .windowFx__video{ width: 100%; height: 100%; object-fit: cover; display: block; }
+  .windowFx__tint{ position: absolute; inset: 0; pointer-events: none; background: rgba(0,0,0,.20); mix-blend-mode: multiply; }
+  .windowFx__grad{ position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(180deg, rgba(0,0,0,.28), rgba(0,0,0,0) 35%, rgba(0,0,0,.45) 100%);
+  }
+
+  .windowFx__content{
+    position: relative; z-index: 2; color: #fff;
+    /* “centrado tirando a izquierda” y más abajo */
+    max-width: 680px;
+    padding: 24px 16px;
+    top: clamp(34vh, 40vh, 44vh);
+    left: clamp(5vw, 9vw, 12vw);
+
+    .eyebrow{ color: #6bd08f; font-weight: 700; display: block; margin-bottom: 12px; }
+    /* Pedido: título 33px, bold, line-height normal */
+    h2{
+      margin: 0 0 12px;
+      font-family: "Manrope", system-ui;
+      font-weight: 700;
+      font-size: 33px;
+      line-height: 1;
+      color: #FFF;
+    }
+    p { opacity:.9; font-size: clamp(.98rem, 1.7vw, 1.05rem); max-width: 58ch; }
+  }
+}
