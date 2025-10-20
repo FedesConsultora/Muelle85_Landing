@@ -10,7 +10,6 @@ export default function About() {
         <AboutIntro />
         <AboutGallery />
 
-        {/* Features: empieza cuando la sección llega a la mitad del viewport */}
         <AboutFeaturesFX
           pin={true}
           scrub={0.7}
@@ -19,18 +18,19 @@ export default function About() {
           unlockPadding={0.18}
         />
 
-        {/* Ventana/paisaje: vídeo con scrubbing + texto que cae en el segundo 2.5 */}
         <WindowPanoramaFX
           pin={true}
           scrub={0.7}
           endFactor={2.0}
           triggerStart="top top"
           timeForText={3.7}
-          holdTop={0.04}                     
+          holdTop={0.04}
           holdEnd={0.12}
-          poster="/img/transicion-ventana_3-poster.webp" 
-          webm="/video/transicion-ventana_3_optimizado.webm"
-          mp4="/video/transicion-ventana_3_optimizado.mp4"
+          poster="/img/transicion-ventana_3-poster.webp"
+          sources={[
+            { src: '/video/transicion-ventana_3_optimizado.webm', type: 'video/webm' },
+            { src: '/video/transicion-ventana_3_optimizado.mp4',  type: 'video/mp4'  },
+          ]}
         />
       </div>
     </section>

@@ -3,20 +3,23 @@ import { useGsapContext } from '../../hooks/useGsapContext';
 import { gsap, ScrollTrigger } from '../../lib/gsap/setupGsap';
 
 /**
- * Pantalla completa. Pin + scrubbing inmediato al ocupar la pantalla.
- * - holdTop mínimo para que el póster se vea pero arranque enseguida.
- * - holdEnd mantiene un “descanso” al final antes de soltar el pin.
- * - El copy cae a los timeForText segundos del video.
+ * Sección fullscreen con pin + scrubbing del video.
+ * - Prepara múltiples <source> (WebM + MP4) y sigue funcionando aunque la metadata tarde.
+ * - holdTop/holdEnd controlan “póster un toque” al principio y descanso al final.
+ * - El copy aparece a los `timeForText` segundos del video.
  */
 export default function WindowPanoramaFX({
   pin = true,
   scrub = 0.6,
-  endFactor = 2.0,          // ~2 viewports
-  triggerStart = 'top top', // pinea cuando top toca top
+  endFactor = 2.0,              // duración ≈ múltiplos de viewport
+  triggerStart = 'top top',     // cuando el top de la sección toca el top
   timeForText = 3.5,
-  holdTop = 0.04,           // ⬅️ de 0.22 → 0.04 para empezar enseguida
+  holdTop = 0.02,               // dejarlo bien corto para “arrancar enseguida”
   holdEnd = 0.12,
   poster = '/img/transicion-ventana-poster.webp',
+
+  // NUEVO: preferí pasar sources (sino usa webm/mp4 como compat)
+  sources = [],
   webm = '/video/transicion-ventana_3_optimizado.webm',
   mp4  = '/video/transicion-ventana_3_optimizado.mp4',
 }) {
@@ -28,26 +31,39 @@ export default function WindowPanoramaFX({
     const video = videoRef.current;
     if (!el || !video) return;
 
-    let duration = 0;
+    // aseguremos flags iOS
+    video.muted = true;
+    video.defaultMuted = true;
+    video.setAttribute('muted', '');
+    video.setAttribute('playsinline', '');
+    video.setAttribute('webkit-playsinline', '');
+    video.removeAttribute('controls');
 
-    const onMeta = () => {
-      duration = video.duration || 0;
+    let duration = 0;
+    let armed = false; // evitamos armar dos veces ST
+    let warmed = false;
+
+    const content  = el.querySelector('[data-win="content"]');
+    const zoomWrap = el.querySelector('[data-win="zoom"]');
+
+    // estado inicial
+    gsap.set(zoomWrap, { scale: 1.12, transformOrigin: '50% 50%' });
+    gsap.set(content,   { opacity: 0, y: -40, rotate: -2, filter: 'blur(4px)' });
+
+    const textTl = gsap.timeline({ paused: true })
+      .to(content, {
+        opacity: 1, y: 0, rotate: 0, filter: 'blur(0px)',
+        duration: 0.42, ease: 'power1.out'
+      });
+
+    const clamp01 = (x) => Math.max(0, Math.min(1, x));
+
+    const armScrollTrigger = () => {
+      if (armed) return;
+      armed = true;
 
       ctx.current.add(() => {
-        const content  = el.querySelector('[data-win="content"]');
-        const zoomWrap = el.querySelector('[data-win="zoom"]');
-
-        // Estado inicial
-        gsap.set(zoomWrap, { scale: 1.12, transformOrigin: '50% 50%' });
-        gsap.set(content,   { opacity: 0, y: -40, rotate: -2, filter: 'blur(4px)' });
-
-        const textTl = gsap.timeline({ paused: true })
-          .to(content, {
-            opacity: 1, y: 0, rotate: 0, filter: 'blur(0px)',
-            duration: 0.38, ease: 'power1.out'
-          });
-
-        const tl = gsap.timeline({
+        gsap.timeline({
           scrollTrigger: {
             trigger: el,
             start: triggerStart,
@@ -55,46 +71,108 @@ export default function WindowPanoramaFX({
             scrub,
             pin,
             pinSpacing: true,
+            pinReparent: true,
             anticipatePin: 1,
+            invalidateOnRefresh: true,
             // markers: true,
             onUpdate: self => {
-              if (!duration) return;
-
-              // Progreso global [0..1]
-              const p = gsap.utils.clamp(0, 1, self.progress);
-
-              // Rango activo (scrub real) después del “póster”
+              if (!duration) return; // si aún no hay metadata, esperamos
+              const p = clamp01(self.progress);
               const activeRange = Math.max(0.0001, 1 - holdTop - holdEnd);
-              const activeP = gsap.utils.clamp(0, 1, (p - holdTop) / activeRange);
+              const activeP = clamp01((p - holdTop) / activeRange);
 
-              // 1) scrubbing del video (inmediato tras ocupar pantalla)
+              // Scrub:
               const t = activeP * duration;
-              if (!Number.isNaN(t)) video.currentTime = t;
+              if (!Number.isNaN(t)) {
+                if ('fastSeek' in video && typeof video.fastSeek === 'function') {
+                  try { video.fastSeek(t); } catch { video.currentTime = t; }
+                } else {
+                  video.currentTime = t;
+                }
+              }
 
-              // 2) zoom-out en el primer 30% del tramo activo
-              const z = gsap.utils.clamp(0, 1, (p - holdTop) / (0.30 * activeRange));
-              gsap.to(zoomWrap, { scale: gsap.utils.interpolate(1.12, 1, z), duration: 0, overwrite: 'auto' });
+              // Zoom-out en 30% inicial del tramo activo
+              const z = clamp01((p - holdTop) / (0.30 * activeRange));
+              gsap.to(zoomWrap, {
+                scale: gsap.utils.interpolate(1.12, 1, z),
+                duration: 0, overwrite: 'auto'
+              });
 
-              // 3) copy “cae” a partir de timeForText
-              const pStart = duration ? timeForText / duration : 0.0; // 0..1 relativo
-              const span   = 0.25; // 25% del timeline para el texto
-              const rel    = gsap.utils.clamp(0, 1, (activeP - pStart) / span);
+              // Texto a partir de timeForText
+              const pStart = duration ? timeForText / duration : 0;
+              const span   = 0.25;
+              const rel    = clamp01((activeP - pStart) / span);
               textTl.progress(rel);
             }
           }
-        });
+        })
+        // timeline vacío para establecer el pin
+        .to({}, { duration: 1 });
 
-        // timeline vacío (establece pin)
-        tl.to({}, { duration: 1 });
         ScrollTrigger.refresh();
       });
     };
 
-    if (video.readyState >= 1) onMeta();
-    else video.addEventListener('loadedmetadata', onMeta, { once: true });
+    const primeDecoder = async () => {
+      if (warmed) return;
+      warmed = true;
+      try { await video.play(); video.pause(); } catch {}
+    };
 
-    return () => {};
+    const onMeta = () => {
+      duration = video.duration || 0;
+      if (!duration && video.seekable && video.seekable.length > 0) {
+        try { duration = video.seekable.end(0) || 0; } catch {}
+      }
+      // posicionarse al inicio “activo”
+      const startT = clamp01(holdTop) * duration;
+      try {
+        if ('fastSeek' in video) video.fastSeek(startT);
+        else video.currentTime = startT;
+      } catch { video.currentTime = startT; }
+
+      primeDecoder();
+      armScrollTrigger();
+    };
+
+    const onLoadedMeta = () => onMeta();
+    const onDuration = () => onMeta();
+    const onCanPlay = () => primeDecoder();
+
+    // Armamos ST aun sin metadata, para que el pin funcione ya.
+    armScrollTrigger();
+
+    // Cuando entra a viewport por primera vez, forzamos load() (iOS)
+    const io = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        try { video.load(); } catch {}
+        io.disconnect();
+      }
+    }, { threshold: 0.15 });
+    io.observe(el);
+
+    // eventos de media
+    video.addEventListener('loadedmetadata', onLoadedMeta);
+    video.addEventListener('durationchange', onDuration);
+    video.addEventListener('canplay', onCanPlay);
+
+    // si ya está lista la metadata
+    if (video.readyState >= 1) onMeta();
+
+    return () => {
+      io.disconnect();
+      video.removeEventListener('loadedmetadata', onLoadedMeta);
+      video.removeEventListener('durationchange', onDuration);
+      video.removeEventListener('canplay', onCanPlay);
+    };
   }, [pin, scrub, endFactor, triggerStart, timeForText, holdTop, holdEnd]);
+
+  const srcList = (sources && sources.length)
+    ? sources
+    : [
+        { src: webm, type: 'video/webm' },
+        { src: mp4,  type: 'video/mp4'  },
+      ];
 
   return (
     <section ref={ref} className="windowFx" aria-label="Ventana panorámica">
@@ -106,9 +184,13 @@ export default function WindowPanoramaFX({
           playsInline
           muted
           preload="auto"
+          controls={false}
+          controlsList="nodownload nofullscreen noplaybackrate"
+          disablePictureInPicture
         >
-          <source src={webm} type="video/webm" />
-          <source src={mp4}  type="video/mp4" />
+          {srcList.map((s, i) => (
+            <source key={i} src={s.src} type={s.type} />
+          ))}
         </video>
         <div className="windowFx__tint" aria-hidden="true" />
         <div className="windowFx__grad" aria-hidden="true" />
