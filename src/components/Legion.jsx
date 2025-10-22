@@ -5,15 +5,19 @@ export default function Legion() {
       {/* Arte lateral: sólo tiene imagen en desktop vía CSS (no se descarga en mobile) */}
       <div className="legion__art" aria-hidden="true" />
       <div className="legion__content">
-        <p className="kicker">No vendemos trailers</p>
-        <h2 className="legion__title">
-          Te invitamos a una legión de<br />nómadas modernos
-        </h2>
-        <p className="legion__lead">
-          Ser dueño de un M85 es más que tener un tráiler; es tu acceso a la Legión
-          Outlander. Una comunidad exclusiva con acceso a expediciones, mapas y un
-          espacio para compartir experiencias.
-        </p>
+        <h2>Tu aventura<br />comienza hoy</h2>
+        <ol>
+          <li>
+            <strong>1. Agendá tu test drive:</strong>  viví una experiencia real off-road.
+          </li>
+          <li>
+            <strong>2. Personalizá tu M85: </strong>elegí tus colores y tapizados y grabá tu frase personal.
+          </li>
+          <li>
+            <strong>3. Unite a la Legión: </strong> recibí tu código de socio exclusivo y comenzá a explorar.
+          </li>
+        </ol>
+       
       </div>
     </section>
   );

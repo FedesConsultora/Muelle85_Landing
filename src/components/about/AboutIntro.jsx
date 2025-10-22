@@ -21,17 +21,18 @@ export default function AboutIntro() {
         <ScrollScrubVideoFX
           sources={[
             { src: '/video/camper-giro_2_optimizado.webm', type: 'video/webm' },
-            { src: '/video/camper-giro_2_optimizado.mp4',  type: 'video/mp4'  }, // ⬅️ fallback iOS
+            { src: '/video/camper-giro_2_optimizado.mp4',  type: 'video/mp4'  },
           ]}
           poster="/img/camper-poster.webp"
-          range={[0, 1]}            // recorre todo
+          range={[0, 1]}
           minHeightMobile="34vh"
           fit="cover"
           aspect="1"
-          // para mobile: arranca bien pronto; podés ajustarlo
           start="top bottom"
           end="bottom top"
           scrub={true}
+          preLeadSeconds={0.4}   // 👈 arranca girando
+          pivotProgress={0.5}    // 👈 en centro vuelve a 0s
         />
       </div>
     </article>

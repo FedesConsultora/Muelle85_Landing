@@ -1,8 +1,17 @@
 import { useEffect, useRef } from 'react';
+const WA_PHONE = process.env.REACT_APP_WA_PHONE || '';
+
+function buildWaLink(text) {
+    const t = encodeURIComponent(text);
+    if (WA_PHONE) return `https://wa.me/${WA_PHONE}`;
+    return `https://wa.me/?text=${t}`;
+  }
 
 export default function Hero() {
   const vRef = useRef(null);
 
+  
+  const waHref = buildWaLink('');
   useEffect(() => {
     const v = vRef.current;
     if (!v) return;
@@ -71,9 +80,15 @@ export default function Hero() {
           No es para los que viajan.<br />
           Es para los que <strong>VIVEN</strong>.
         </h1>
-        <button className="buttonViaje">
-          <p>Obtén tu viaje de prueba</p>
-        </button>
+        
+          <a
+              className="footer__cta"
+              href={waHref}
+              target="_blank"
+              rel="noopener noreferrer"
+          >
+              Obtené tu viaje de prueba
+          </a>
       </div>
     </section>
   );

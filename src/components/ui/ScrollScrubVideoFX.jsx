@@ -1,25 +1,32 @@
+// src/components/ui/ScrollScrubVideoFX.jsx
 import { useEffect, useRef } from 'react';
 import { useGsapContext } from '../../hooks/useGsapContext';
 import { gsap, ScrollTrigger } from '../../lib/gsap/setupGsap';
 
 /**
  * Scrub de video con GSAP + ScrollTrigger (mobile/desktop).
- * - Acepta múltiples sources (webm/mp4) para compatibilidad iOS.
- * - range: [0..1] sobre la duración del video.
+ * - “Boomerang” alrededor del centro: al entrar arranca adelantado y
+ *   rebobina hasta 0 cuando el bloque queda centrado; luego 0→fin.
+ * - Acepta múltiples sources (webm/mp4) para iOS.
  */
 export default function ScrollScrubVideoFX({
   sources = [],             // [{src, type}]
   poster = '',
   className = '',
-  range = [0, 1],           // fracción [inicio, fin]
+  range = [0, 1],           // fracción [inicio, fin] del video (0..1)
   minHeightMobile = '36vh',
   fit = 'cover',
   aspect = '1',
   ariaLabel = 'Vídeo controlado por scroll',
-  // tuning
-  start = 'top bottom',     // arranca cuando entra a vista por abajo
-  end   = 'bottom top',     // termina cuando sale por arriba
+
+  // Tuning de scroll
+  start = 'top bottom',     // entra cuando asoma por abajo
+  end   = 'bottom top',     // sale cuando se va por arriba
   scrub = true,
+
+  // Tuning del “boomerang”
+  pivotProgress = 0.5,      // dónde cae el 0s del video (0..1 del tramo de scroll)
+  preLeadSeconds = 0.35,    // cuánto “adelantado” arranca al entrar (segundos)
 }) {
   const { ref, ctx } = useGsapContext();
   const videoRef = useRef(null);
@@ -35,16 +42,22 @@ export default function ScrollScrubVideoFX({
       duration = v.duration || 0;
 
       ctx.current.add(() => {
-        // resguardo por si rango está fuera de 0..1
         const clamp01 = (x) => Math.max(0, Math.min(1, x));
         const sF = clamp01(range[0]);
         const eF = clamp01(range[1]);
 
-        // al cargar, posicionarse al start
-        v.currentTime = (sF * duration) || 0;
+        // Límites reales en segundos para el tramo útil
+        const startSec = sF * duration;       // suele ser 0
+        const endSec   = eF * duration || 0;  // suele ser duration
 
-        // timeline vacío, usamos onUpdate para scrubbing
-        gsap.timeline({
+        // Cuánto adelantamos al entrar (capado para no exceder el tramo)
+        const leadSec  = Math.min(Math.max(0, preLeadSeconds), Math.max(0.05, endSec * 0.5));
+
+        // Arrancamos mostrando el “adelantado” (se ve girando enseguida)
+        v.currentTime = Math.min(endSec, Math.max(startSec, leadSec));
+
+        // Timeline vacío; mapeamos en onUpdate
+        const tl = gsap.timeline({
           scrollTrigger: {
             trigger: wrap,
             start,
@@ -53,52 +66,74 @@ export default function ScrollScrubVideoFX({
             // markers: true,
             onUpdate: self => {
               if (!duration) return;
-              const p = clamp01(self.progress); // 0..1 del tramo visible
-              const t = (sF + (eF - sF) * p) * duration;
+
+              const p = clamp01(self.progress);           // 0..1
+              const pivot = clamp01(pivotProgress);       // ~0.5 (centro de pantalla)
+
+              let t; // tiempo en segundos
+
+              if (p <= pivot) {
+                // ENTRADA: de leadSec → 0s mientras se acerca al centro (rebobina)
+                const p0 = pivot ? (p / pivot) : 1;       // 0..1
+                t = gsap.utils.interpolate(leadSec, startSec, p0);
+              } else {
+                // SALIDA: de 0s → endSec desde el centro hacia afuera
+                const p1 = (p - pivot) / (1 - pivot);     // 0..1
+                t = gsap.utils.interpolate(startSec, endSec, clamp01(p1));
+              }
+
+              // Set directo (respuesta inmediata al scroll)
               if (!Number.isNaN(t)) v.currentTime = t;
             },
             onRefresh: self => {
-              // re-sincronizar en refresh/resize
-              if (duration) v.currentTime = sF * duration;
+              // Re-sincroniza según la posición actual
+              const p = clamp01(self.progress);
+              const pivot = clamp01(pivotProgress);
+              const t = p <= pivot
+                ? gsap.utils.interpolate(leadSec, startSec, pivot ? (p / pivot) : 1)
+                : gsap.utils.interpolate(startSec, endSec, (p - pivot) / (1 - pivot));
+              if (!Number.isNaN(t)) v.currentTime = t;
             }
           }
         });
 
+        // Limpieza si cambia layout
         ScrollTrigger.refresh();
+        return () => tl.revert?.();
       });
     };
 
     if (v.readyState >= 1) onMeta();
     else v.addEventListener('loadedmetadata', onMeta, { once: true });
 
-    return () => {};
-  }, [range, start, end, scrub]);
+    return () => v && v.removeEventListener('loadedmetadata', onMeta);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [range, start, end, scrub, pivotProgress, preLeadSeconds]);
 
-    return (
-      <div
-        ref={ref}
-        className={`ssv ${fit === 'cover' ? 'ssv--cover' : ''} ${className}`}
-        style={{ '--ssv-min-h': minHeightMobile, '--ssv-aspect': aspect }}
-        aria-label={ariaLabel}
-      >
-        <div className="ssv__frame">
-          <video
-            ref={videoRef}
-            className="ssv__video"
-            poster={poster}
-            preload="auto"
-            playsInline
-            muted
-            // no autoplay: lo “maneja” el scroll
-            controls={false}
-            controlsList="nodownload nofullscreen noplaybackrate"
-            disablePictureInPicture
-          >
-            {sources.map((s, i) => (
-              <source key={i} src={s.src} type={s.type} />
-            ))}
-          </video>
-        </div>
+  return (
+    <div
+      ref={ref}
+      className={`ssv ${fit === 'cover' ? 'ssv--cover' : ''} ${className}`}
+      style={{ '--ssv-min-h': minHeightMobile, '--ssv-aspect': aspect }}
+      aria-label={ariaLabel}
+    >
+      <div className="ssv__frame">
+        <video
+          ref={videoRef}
+          className="ssv__video"
+          poster={poster}
+          preload="auto"
+          playsInline
+          muted
+          controls={false}
+          controlsList="nodownload nofullscreen noplaybackrate"
+          disablePictureInPicture
+        >
+          {sources.map((s, i) => (
+            <source key={i} src={s.src} type={s.type} />
+          ))}
+        </video>
       </div>
-    );
+    </div>
+  );
 }

@@ -14,5 +14,5 @@ export function setupGsap() {
 
 export const gsap = _gsap;
 export const ScrollTrigger = _ScrollTrigger;
-// export opcional por si lo querés usar en otro lado.
+
 export const ScrollToPlugin = _ScrollToPlugin;

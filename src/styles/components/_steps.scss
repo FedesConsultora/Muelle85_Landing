@@ -23,7 +23,7 @@
   z-index: 0;
 }
 
-.steps__content{
+.legion__content{
   position: relative;
   z-index: 1;
   max-width: 720px;
@@ -68,6 +68,7 @@
     padding-left: clamp(80px, 10vw, 120px);
   }
   .steps__content{
+    max-width: 500px;
     h2{
       font-size: 3rem;
       line-height: normal;

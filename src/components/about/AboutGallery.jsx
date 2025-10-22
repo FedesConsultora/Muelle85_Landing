@@ -1,5 +1,7 @@
 // src/components/about/AboutGallery.jsx
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { useGsapContext } from '../../hooks/useGsapContext';
+import { gsap, ScrollTrigger } from '../../lib/gsap/setupGsap';
 
 const DEFAULT_ITEMS = [
   { key: 'rest',       label: 'Descanso sin límites',        src: '/img/galeria1.webp', alt: 'Cama amplia y confortable dentro del trailer.' },
@@ -8,18 +10,28 @@ const DEFAULT_ITEMS = [
   { key: 'insulation', label: 'Aislación del mundo',         src: '/img/galeria4.webp', alt: 'Aislación térmica y acústica del interior.' }
 ];
 
-export default function AboutGallery({ items = DEFAULT_ITEMS, intervalMs = 4000 }) {
+export default function AboutGallery({
+  items = DEFAULT_ITEMS,
+  intervalMs = 4000,
+  // cuánto se “queda” pinneada: múltiplos de alto de viewport
+  pinFactorDesktop = 1.35,
+  pinFactorMobile  = 1.05,
+}) {
   const [index, setIndex] = useState(0);
-  const [dir, setDir] = useState('next');          // 'next' | 'prev'
-  const [tick, setTick] = useState(true);          // alterna para reiniciar anims (pulso+glint)
+  const [dir, setDir] = useState('next');  // 'next' | 'prev'
+  const [tick, setTick] = useState(true);  // reinicia anims (pulso+glint)
   const len = items.length;
 
-  const tRef = useRef(null);
-  const barRef = useRef(null);
-  const tabsRef = useRef([]);
-  const prevIdxRef = useRef(0);
+  const tRef      = useRef(null);
+  const barRef    = useRef(null);
+  const tabsRef   = useRef([]);
+  const prevIdxRef= useRef(0);
+  const rootRef   = useRef(null);
+  const visibleRef= useRef(false);
 
-  // Pre-carga imágenes para evitar parpadeos
+  const { ctx } = useGsapContext();
+
+  // Preload
   useEffect(() => { items.forEach(i => { const im = new Image(); im.src = i.src; }); }, [items]);
 
   const computeDir = useCallback((from, to) => {
@@ -44,17 +56,19 @@ export default function AboutGallery({ items = DEFAULT_ITEMS, intervalMs = 4000 
     prevIdxRef.current = to;
     setIndex(to);
     placePulseAtTab(tabsRef.current[to]);
-    setTick(t => !t); // reinicia animación (pulso + glint en el activo)
+    setTick(t => !t);
   }, [computeDir, placePulseAtTab]);
 
   const next = useCallback(() => goTo((prevIdxRef.current + 1) % len), [goTo, len]);
   const prev = useCallback(() => goTo((prevIdxRef.current - 1 + len) % len), [goTo, len]);
 
-  // Autoplay desde la última selección del usuario
+  // Autoplay SOLO cuando visible (y sin reduced-motion)
   useEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     clearTimeout(tRef.current);
-    tRef.current = setTimeout(next, intervalMs);
+    if (!reduce && visibleRef.current) {
+      tRef.current = setTimeout(next, intervalMs);
+    }
     return () => clearTimeout(tRef.current);
   }, [index, next, intervalMs]);
 
@@ -66,9 +80,60 @@ export default function AboutGallery({ items = DEFAULT_ITEMS, intervalMs = 4000 
   // Posicionar pulso al cargar
   useEffect(() => { placePulseAtTab(tabsRef.current[0]); }, [placePulseAtTab]);
 
+  // Pin + dwell (GSAP)
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el) return;
+
+    // IO para saber si está visible (y controlar autoplay)
+    const io = new IntersectionObserver(([entry]) => {
+      visibleRef.current = entry.isIntersecting;
+    }, { threshold: [0, 0.5, 1] });
+    io.observe(el);
+
+    ctx.current.add(() => {
+      ScrollTrigger.matchMedia({
+        // Desktop: se queda más (1.35x viewport aprox)
+        '(min-width: 1024px)': () => {
+          ScrollTrigger.create({
+            trigger: el,
+            start: 'top top',
+            end:   () => `+=${Math.round(window.innerHeight * pinFactorDesktop)}`,
+            pin: true,
+            pinSpacing: true,
+            anticipatePin: 1,
+            // scrub: false -> solo “dwell”, sin scrubbing interno
+          });
+        },
+        // Mobile/Tablet: un dwell cortito para que no sea fácil pasarse
+        '(max-width: 1023.98px)': () => {
+          ScrollTrigger.create({
+            trigger: el,
+            start: 'top top',
+            end:   () => `+=${Math.round(window.innerHeight * pinFactorMobile)}`,
+            pin: true,
+            pinSpacing: true,
+            anticipatePin: 1,
+          });
+        }
+      });
+
+      ScrollTrigger.refresh();
+    });
+
+    return () => {
+      io.disconnect();
+    };
+  }, [pinFactorDesktop, pinFactorMobile, ctx]);
+
   return (
-    <article id='ingenieria' className="about__gallery about__gallery--full">
-      <div className="gallery" role="region" aria-label="Galería Muelle85">
+    <article
+      id="ingenieria"
+      ref={rootRef}
+      className="about__gallery about__gallery--full"
+      aria-label="Galería Muelle85"
+    >
+      <div className="gallery" role="region">
         <div className="gallery__viewport">
           {items.map((it, i) => (
             <figure
